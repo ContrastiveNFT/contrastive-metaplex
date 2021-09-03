@@ -369,6 +369,7 @@ program
             );
           } catch (exx) {
             console.error('Error deploying config to Solana network.', exx);
+            throw exx;
             // console.error(exx);
           }
         }
@@ -393,7 +394,7 @@ program
           // data.append('tags', JSON.stringify(tags));
           // payment transaction
           const data = new FormData();
-          data.append('transaction', tx);
+          data.append('transaction', JSON.stringify(tx));
           data.append('env', ENV);
           data.append('file[]', fs.createReadStream(image), `image.png`);
           data.append('file[]', manifestBuffer, 'metadata.json');
@@ -496,7 +497,8 @@ program
         ),
       );
     } catch (e) {
-      console.error(e);
+      // console.error(e);
+      throw e;
     } finally {
       fs.writeFileSync(
         path.join(CACHE_PATH, cacheName),
