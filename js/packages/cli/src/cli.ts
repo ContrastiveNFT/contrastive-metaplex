@@ -390,11 +390,12 @@ program
             [],
             'single',
           );
+          console.info('transaction for arweave payment:', tx);
 
           // data.append('tags', JSON.stringify(tags));
           // payment transaction
           const data = new FormData();
-          data.append('transaction', JSON.stringify(tx));
+          data.append('transaction', tx['txid']);
           data.append('env', ENV);
           data.append('file[]', fs.createReadStream(image), `image.png`);
           data.append('file[]', manifestBuffer, 'metadata.json');
@@ -612,12 +613,12 @@ program
       },
     );
 
-    console.log('Done');
+    console.log(`Done: CANDYMACHINE: ${candyMachine.toBase58()}`);
   });
 
 program
-  .command('mint_token_as_candy_machine_owner')
-  .option('-k, --keypair <path>', 'Solana wallet')
+  .command('mint_one_token')
+  .option('-k, --keypair <path>', `The purchaser's wallet key`)
   .option('-c, --cache-name <path>', 'Cache file name')
   .action(async (directory, cmd) => {
     const solConnection = new anchor.web3.Connection(
@@ -650,6 +651,7 @@ program
       config,
       cachedContent.program.uuid,
     );
+    const candy = await anchorProgram.account.candyMachine.fetch(candyMachine);
     const metadata = await getMetadata(mint.publicKey);
     const masterEdition = await getMasterEdition(mint.publicKey);
     const tx = await anchorProgram.rpc.mintNft({
@@ -657,7 +659,8 @@ program
         config: config,
         candyMachine: candyMachine,
         payer: walletKey.publicKey,
-        wallet: walletKey.publicKey,
+        //@ts-ignore
+        wallet: candy.wallet,
         mint: mint.publicKey,
         metadata,
         masterEdition,
